@@ -58,4 +58,4 @@ echo "用nano /etc/tcp_pool/us.conf编辑配置文件，nano我装好了，us改
 echo "然后填写好配置文件"
 echo "写好了就systemctl restart tcp-pool@us，记得us改成你自己的"
 echo "要开机自启的话就systemctl enable tcp-pool@us，记得us改成你自己的"
-echo "然后看日志systemctl status tcp-pool@us，记得us改成你自己的，如果看到一坨Preconnect +1说明通了"
+echo "然后看日志journalctl -u tcp-pool@us -f，记得us改成你自己的，如果看到一坨Preconnect +1说明通了"
