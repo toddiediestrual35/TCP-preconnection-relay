@@ -118,5 +118,6 @@ REMOTE_IP:REMOTE_TCP_PORT
 无预链接的转发（使用realm）：
 <img width="2337" height="277" alt="image" src="https://github.com/user-attachments/assets/cba16059-ded2-43da-b571-0bcaff2ea70b" />
 有预链接的转发:
-<img width="335" height="35" alt="image" src="https://github.com/user-attachments/assets/67824207-ade4-4289-9041-b806fe5075cf" />
+<img width="2559" height="256" alt="image" src="https://github.com/user-attachments/assets/bc78e370-9072-4fb1-90fc-75d2a6304618" />
+
 
