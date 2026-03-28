@@ -326,6 +326,8 @@ typedef struct Conn {
     uint64_t last_l2r, last_r2l;
     bool closed;
     struct Conn *next;
+    bool connecting;          //是否处于connect 中
+    uint64_t connect_start;   //connect开始时间
 } Conn;
 
 static int epfd;
@@ -580,7 +582,7 @@ int main() {
                     pthread_mutex_lock(&pool_mtx);
                     int rem = pool_get_locked();
                     pthread_mutex_unlock(&pool_mtx);
-
+                    bool connecting = false;
                     if (rem < 0) {//如果并发太高了，那么直接按照传统方式转发连接
                         log_enqueue("Exceeded Connections Pool, Direct Out...");
 
@@ -594,22 +596,22 @@ int main() {
                         if (rem < 0) { close(cli); continue; }
                         set_tcp_socket_options(rem);
                         if (set_nonblock(rem) != 0) { close(rem); close(cli); continue; }
-
+                        //fallback这里问题调整了一下///////////////////////////////////QAQ
                         int rc = connect(rem, (struct sockaddr*)&raddr, sizeof(raddr));
-                        if (rc != 0 && errno != EINPROGRESS) { close(rem); close(cli); continue; }
                         if (rc != 0) {
-                            struct pollfd pfd = { .fd = rem, .events = POLLOUT };
-                            if (poll(&pfd, 1, CONNECT_TIMEOUT * 1000) <= 0) { close(rem); close(cli); continue; }
-                            int err = 0;
-                            socklen_t len = sizeof(err);
-                            getsockopt(rem, SOL_SOCKET, SO_ERROR, &err, &len);
-                            if (err != 0) { close(rem); close(cli); continue; }
+                            if (errno != EINPROGRESS) {
+                                close(rem);
+                                close(cli);
+                                continue;
+                            }
+                            connecting = true;
                         }
                     }
 
                     Conn *c = (Conn*)calloc(1, sizeof(Conn));
                     if (!c) { close(cli); close(rem); continue; }
-
+                    c->connecting = connecting;
+                    c->connect_start = now;
                     c->fd_l = cli;
                     c->fd_r = rem;
                     c->pipe_l2r[0] = c->pipe_l2r[1] = -1;
@@ -622,14 +624,29 @@ int main() {
                         continue;
                     }
 
-                    struct epoll_event ev_c;//加入epoll
-                    ev_c.events = EPOLLIN | EPOLLRDHUP | EPOLLET;
+                    struct epoll_event ev_c;
 
+                    uint32_t ev_l = EPOLLRDHUP | EPOLLET;
+                    if (!c->connecting) ev_l |= EPOLLIN;
+
+                    ev_c.events = ev_l;
                     ev_c.data.ptr = (void*)((uintptr_t)c | (uintptr_t)0);
-                    if (epoll_ctl(epfd, EPOLL_CTL_ADD, cli, &ev_c) != 0) { conn_close(c); free(c); continue; }
+                    if (epoll_ctl(epfd, EPOLL_CTL_ADD, cli, &ev_c) != 0) {
+                        conn_close(c);
+                        free(c);
+                        continue;
+                    }
+                    uint32_t ev_r = EPOLLRDHUP | EPOLLET;
+                    if (c->connecting) ev_r |= EPOLLOUT;
+                    else ev_r |= EPOLLIN;
 
+                    ev_c.events = ev_r;
                     ev_c.data.ptr = (void*)((uintptr_t)c | TAG_CONN_SIDE);
-                    if (epoll_ctl(epfd, EPOLL_CTL_ADD, rem, &ev_c) != 0) { conn_close(c); free(c); continue; }
+                    if (epoll_ctl(epfd, EPOLL_CTL_ADD, rem, &ev_c) != 0) {
+                        conn_close(c);
+                        free(c);
+                        continue;
+                    }
 
                     c->next = conn_list;
                     conn_list = c;
@@ -687,8 +704,26 @@ int main() {
             //TCP conn
             Conn *c = (Conn*)(pv & ~TAG_CONN_SIDE);
             if (!c || c->closed) continue;
-
             bool is_remote_fd = (pv & TAG_CONN_SIDE);
+            if (is_remote_fd && c->connecting) {
+                if (events[i].events & (EPOLLOUT | EPOLLERR | EPOLLHUP | EPOLLRDHUP)) {//这里保险还是判断完整一点
+                    int err = 0;
+                    socklen_t len = sizeof(err);
+                    getsockopt(c->fd_r, SOL_SOCKET, SO_ERROR, &err, &len);
+
+                    if (err != 0) {
+                        log_enqueue("Connect failed");
+                        conn_close(c);
+                        continue;
+                    }
+
+                    // connect 成功
+                    c->connecting = false;
+
+                    conn_watch(c); // 切换为正常读写监听
+                }
+                continue;
+            }
 
             if (events[i].events & (EPOLLERR | EPOLLHUP | EPOLLRDHUP)) {
                 if (events[i].events & EPOLLERR) {
@@ -725,8 +760,13 @@ int main() {
                 Conn *next = cur->next;
 
                 uint64_t last_any = (cur->last_l2r > cur->last_r2l) ? cur->last_l2r : cur->last_r2l;
-                bool timeout = (now - last_any > (uint64_t)IDLE_TIMEOUT * 1000ULL);
-
+                bool timeout = (!cur->connecting) &&
+                            (now - last_any > (uint64_t)IDLE_TIMEOUT * 1000ULL);
+                if (cur->connecting &&
+                    now - cur->connect_start > (uint64_t)CONNECT_TIMEOUT * 1000ULL) {
+                    log_enqueue("Connect timeout");
+                    conn_close(cur);
+                }
                 if (cur->closed || timeout) {
                     if (timeout && !cur->closed) {
                         log_enqueue("Timeout(%ds): Local->Remote", IDLE_TIMEOUT);
