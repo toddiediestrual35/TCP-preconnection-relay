@@ -233,7 +233,33 @@ systemctl daemon-reload
 
 true
 
+systemctl daemon-reload
+
 echo ""
 echo "========================================"
 echo " Install completed!"
 echo "========================================"
+
+read -r -p "是否现在修改配置文件？ [Y/n]: " EDIT_NOW
+case "$EDIT_NOW" in
+    n|N)
+        echo "之后可以输入以下命令修改配置文件，记得存一下哦："
+        echo "nano /etc/tcp_pool/relays.conf"
+        echo "之后可以输入以下命令解析配置，记得存一下哦："
+        echo "tcp-pool-parse"
+        ;;
+    *)
+        nano /etc/tcp_pool/relays.conf
+
+        read -r -p "是否现在解析配置？ [Y/n]: " PARSE_NOW
+        case "$PARSE_NOW" in
+            n|N)
+                echo "之后输入以下命令解析配置，记得存一下哦："
+                echo "tcp-pool-parse"
+                ;;
+            *)
+                tcp-pool-parse
+                ;;
+        esac
+        ;;
+esac
