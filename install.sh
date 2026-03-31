@@ -161,9 +161,11 @@ while IFS= read -r raw || [ -n "$raw" ]; do
     [[ "$line" == \;* ]] && continue
 
     if [[ "$line" =~ ^\[([A-Za-z0-9_-]+)\]$ ]]; then
+        next_section="${BASH_REMATCH[1]}"
+    
         validate_and_write_section
     
-        current="${BASH_REMATCH[1]:-}"
+        current="$next_section"
         if [[ -n "${section_seen[$current]:-}" ]]; then
             echo "你标签写重复了: [$current]" >&2
             exit 1
