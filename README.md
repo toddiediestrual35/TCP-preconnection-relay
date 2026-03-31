@@ -9,7 +9,8 @@
 一键安装：
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Xeloan/TCP-preconnection-relay/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/Xeloan/TCP-preconnection-relay/main/install.sh -o install.sh
+bash install.sh
 ```
 
 ## 更新日志
