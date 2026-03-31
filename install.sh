@@ -9,7 +9,7 @@ https://raw.githubusercontent.com/Xeloan/TCP-preconnection-relay/main/tcp_pool.c
 gcc -O2 -pthread -march=native -o /root/tcp_pool /root/tcp_pool.c
 mkdir -p /etc/tcp_pool
 
-cat > /etc/tcp_pool/default.conf <<EOF
+cat > /etc/tcp_pool/relays.conf <<EOF
 #REQUIRED
 #转发标识，中括号内填写标签，比如US,HK1,HK2
 []
