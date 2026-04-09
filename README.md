@@ -16,6 +16,8 @@ curl -fsSL https://raw.githubusercontent.com/Xeloan/TCP-preconnection-relay/main
 
 ## 更新日志
 
+v1.4 按照某位群友要求，新增了一键tcp调优。参数比较通用，适用于绝大部分机器。
+
 v1.3 增加了出入站v4和v6支持，出站还支持使用域名。同时实现了单配置多转发，更加方便。旧版的友友们注意按照指南清空下配置。
 
 ## 指南
