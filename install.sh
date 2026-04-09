@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-echo "正在安装 TCP-preconnection-relay v1.3..."
+echo "正在安装 TCP-preconnection-relay v1.4..."
 echo "如果报错有个括号啥的，请重新到github上复制脚本链接，有变动"
 
 apt update
@@ -34,6 +34,46 @@ cleanup_old_tcp_pool() {
     rm -f /etc/systemd/system/tcp-pool@.service
 
     systemctl daemon-reload || true
+}
+
+apply_tcp_tuning_generic() {
+    echo "正在写入 TCP 调优（通用版）配置..."
+
+    cat > /etc/sysctl.d/99-custom-network-tuning.conf <<'EOF'
+# 通用版 TCP 调优
+net.ipv4.tcp_congestion_control = bbr
+net.core.default_qdisc = fq
+net.ipv4.tcp_fastopen = 3
+
+net.core.somaxconn = 16384
+net.ipv4.tcp_max_syn_backlog = 8192
+net.core.netdev_max_backlog = 65536
+
+net.ipv4.tcp_fin_timeout = 15
+net.ipv4.tcp_mtu_probing = 1
+
+net.core.rmem_max = 33554432
+net.core.wmem_max = 33554432
+net.ipv4.tcp_rmem = 8192 524288 33554432
+net.ipv4.tcp_wmem = 8192 524288 33554432
+
+net.ipv4.tcp_retries2 = 12
+net.ipv4.tcp_timestamps = 1
+net.ipv4.tcp_sack = 1
+net.ipv4.tcp_syncookies = 1
+net.ipv4.ip_local_port_range = 1024 65535
+
+net.ipv4.tcp_keepalive_time = 360
+net.ipv4.tcp_keepalive_intvl = 15
+net.ipv4.tcp_keepalive_probes = 1
+EOF
+    
+    if sysctl --system; then
+        echo "TCP 调优（通用版）已应用。"
+    else
+        echo "TCP 调优配置文件已写入，但应用时出现报错。"
+        echo "你可以手动检查 sysctl 输出，或稍后执行：sysctl --system"
+    fi
 }
 
 read -r -p "你是否要清空旧版配置？如果是v1.3之前版本的必须清空，因为配置大改了。 [y/N]: " CLEAR_OLD
@@ -308,6 +348,16 @@ case "$EDIT_NOW" in
                 tcp-pool-start
                 ;;
         esac
+        ;;
+esac
+echo ""
+read -r -p "是否进行 TCP 调优（通用版）？ [y/N]: " TCP_TUNE_NOW
+case "$TCP_TUNE_NOW" in
+    y|Y)
+        apply_tcp_tuning_generic
+        ;;
+    *)
+        echo "已跳过 TCP 调优。之后如需手动启用，可自行写入 /etc/sysctl.d/99-custom-network-tuning.conf 并执行 sysctl --system"
         ;;
 esac
 echo ""
