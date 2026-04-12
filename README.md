@@ -18,19 +18,29 @@ curl -fsSL https://raw.githubusercontent.com/Xeloan/TCP-preconnection-relay/main
 ## 常用命令说明
 
 修改配置文件：
+```
 nano /etc/tcp_pool/relays.conf
+```
 
 应用配置并启动/重启全部转发：
+```
 tcp-pool-start
+```
 
 停止某个实例（把 HK 改成你自己的标签）：
+```
 systemctl stop tcp-pool@HK
+```
 
 禁用某个实例开机自启（把 HK 改成你自己的标签）：
+```
 systemctl disable tcp-pool@HK
+```
 
 查看某个实例日志（把 HK 改成你自己的标签），如果看到一坨Preconnect +1，说明成了：
+```
 journalctl -u tcp-pool@HK -f
+```
 
 ## 更新日志
 
